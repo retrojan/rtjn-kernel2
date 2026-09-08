@@ -64,7 +64,7 @@ int		readline(char *buf, size_t size)
 		{
 			do_clear_screen = 0;
 			terminal_clear();
-			printk("#> ");
+			printk("# %s> ", g_cwd);
 			i = 0;
 			buf[0] = 0;
 			hooked = 0;
