@@ -1,5 +1,4 @@
 build
 build/*
-iso/boot/rtjn-kernel.bin
 *.iso
-fs.img
+*.img
