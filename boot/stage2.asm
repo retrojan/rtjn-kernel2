@@ -1,5 +1,5 @@
 ;===========================================================================
-;  rtjn bootloader - Stage 2
+;  rtjn-kernel bootloader - Stage 2
 ;
 ;  Loaded by stage 1 at linear 0x1000. Runs in real mode, then:
 ;    1. collects the BIOS E820 memory map into a Multiboot-format map
@@ -460,9 +460,9 @@ k_dap:
     dd 0          ; LBA low
     dd 0          ; LBA high
 
-msg_stage2: db "rtjn: stage2 -> E820, load elf", 0x0d, 0x0a, 0
-msg_loadk:  db "rtjn: loading kernel...", 0x0d, 0x0a, 0
-msg_err:    db "rtjn: stage2 disk error", 0x0d, 0x0a, 0
+msg_stage2: db "rtjn-kernel: stage2 -> E820, load elf", 0x0d, 0x0a, 0
+msg_loadk:  db "rtjn-kernel: loading kernel...", 0x0d, 0x0a, 0
+msg_err:    db "rtjn-kernel: stage2 disk error", 0x0d, 0x0a, 0
 
 ;---------------------------------------------------------------------------
 ;  Flat GDT for protected mode (code 0x08, data 0x10)
@@ -561,4 +561,4 @@ puts32:
     ret
 
 entry_addr: dd 0
-msg_bad:     db "rtjn: bad ELF", 0
+msg_bad:     db "rtjn-kernel-kernel: bad ELF", 0

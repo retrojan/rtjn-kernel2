@@ -86,8 +86,8 @@ dap:
     dd STAGE2_LBA    ; LBA (low)
     dd 0             ; LBA (high)
 
-msg_load:  db "rtjn: stage1 -> loading stage2", 0x0d, 0x0a, 0
-msg_err:   db "rtjn: stage1 disk error", 0x0d, 0x0a, 0
+msg_load:  db "rtjn-kernel: stage1 -> loading stage2", 0x0d, 0x0a, 0
+msg_err:   db "rtjn-kernel: stage1 disk error", 0x0d, 0x0a, 0
 
 boot_drive: db 0
 
