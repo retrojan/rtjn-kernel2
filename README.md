@@ -19,13 +19,20 @@ pacman:
 ```sh
 sudo pacman -S base-devel nasm qemu-system-x86 e2fsprogs
 ```
-yay (AUR):
+AUR:
 ```sh
 yay -S i686-elf-gcc i686-elf-binutils
 ```
-Or use paru
-
-paru (AUR):
+Or
 ```sh
 paru -S i686-elf-gcc i686-elf-binutils
+```
+## Build
+just build:
+```sh
+make
+```
+build and run:
+```sh
+make run
 ```
