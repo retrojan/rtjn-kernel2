@@ -20,7 +20,15 @@ BOOTL_FILES=boot.s gdt_flush.s idt_exceptions.s load_idt.s irqs.s paging.s
 BOOTL_SRCS=$(addprefix $(SRC_DIR), $(addprefix $(BOOTL_DIR), $(BOOTL_FILES)))
 
 KERNEL_DIR=kernel/
-KERNEL_FILES=kernel.c string.c term.c init_term.c gdt.c tss.c printk.c idt.c exception_handler.c puts.c irq_handler.c install_irq.c system_timer.c keyboard.c shell.c readline.c print_stack.c get_mem_max_addr.c init_physical_memory.c physical_memory_manager.c init_virtual_memory.c virtual_memory_manager.c vmalloc.c kmalloc.c print_physical_memory.c demos.c commands.c font.c fbcon.c pci.c ata.c vfs.c ext2.c ext2vfs.c usb.c fscmds.c usbcmds.c acpi.c nano.c vi.c sched.c syscall.c usertask.c net.c netcmds.c rtl8139.c ethernet.c arp.c ipv4.c icmp.c udp.c tcp.c dns.c http.c
+KERNEL_FILES=kernel.c \
+	arch/gdt.c arch/idt.c arch/tss.c arch/exception_handler.c arch/irq_handler.c arch/install_irq.c arch/system_timer.c arch/acpi.c \
+	mm/pmm.c mm/vmm.c mm/heap.c mm/get_mem_max_addr.c \
+	dev/keyboard.c dev/ata.c dev/pci.c dev/usb.c dev/rtl8139.c dev/fbcon.c dev/font.c \
+	net/network.c \
+	fs/vfs.c fs/ext2.c \
+	task/sched.c task/syscall.c task/usertask.c \
+	shell/shell.c shell/commands.c shell/editors.c shell/readline.c \
+	lib/string.c lib/term.c lib/demos.c lib/print_stack.c
 KERNEL_SRCS=$(addprefix $(SRC_DIR), $(addprefix $(KERNEL_DIR), $(KERNEL_FILES)))
 
 USER_DIR=user/
@@ -85,8 +93,8 @@ $(BUILD_DIR)%.o: $(SRC_DIR)/$(BOOTL_DIR)%.s
 	nasm -felf32 $< -o $@
 
 $(BUILD_DIR)%.o: $(SRC_DIR)/$(KERNEL_DIR)%.c
-	mkdir -p $(BUILD_DIR)
-	i686-elf-gcc -c $< -o $@ -std=gnu99 -ffreestanding -fno-builtin -fno-exceptions -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra -I $(KERNEL_DIR) -I $(INCLUDE_DIR) -MMD -MP
+	mkdir -p $(dir $@)
+	i686-elf-gcc -c $< -o $@ -std=gnu99 -ffreestanding -fno-builtin -fno-exceptions -fno-stack-protector -nostdlib -nodefaultlibs -Wall -Wextra -I $(INCLUDE_DIR) -MMD -MP
 
 -include $(BUILD_DIR)$(KERNEL_FILES:.c=.d)
 
