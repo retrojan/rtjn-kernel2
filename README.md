@@ -14,6 +14,6 @@
 
 ## Known issues
 - shutdown on real pc
-
+- FS on real pc
 
 
