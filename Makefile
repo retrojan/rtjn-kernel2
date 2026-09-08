@@ -7,7 +7,7 @@ FSIMG_SIZE_MB=8
 
 SRC_DIR=./
 BUILD_DIR=build/
-INCLUDE_DIR=heads
+INCLUDE_DIR=include
 
 # Custom bootloader (2-stage)
 STAGE1=$(BUILD_DIR)stage1.bin

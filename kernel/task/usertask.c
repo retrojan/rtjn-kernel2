@@ -20,12 +20,12 @@ static int	g_user_slots[USER_MAX_TASKS];
 
 static int	map_user_page(uint32_t virt, void *phys)
 {
-	pdirectory	*p = get_page_directory();
+	pdirectory	*p = vm_page_dir();
 	pd_entry	*e = &p->m_entries[PAGE_DIR_INDEX(virt)];
 
 	if (!(*e & I86_PDE_PRESENT))
 	{
-		ptable	*table = (ptable*)pmmngr_alloc_block();
+		ptable	*table = (ptable*)pm_alloc();
 
 		if (!table)
 			return (-1);
@@ -46,7 +46,7 @@ static int	map_user_page(uint32_t virt, void *phys)
 
 static void	unmap_user_page(uint32_t virt)
 {
-	pdirectory	*p = get_page_directory();
+	pdirectory	*p = vm_page_dir();
 	pd_entry	*e = &p->m_entries[PAGE_DIR_INDEX(virt)];
 
 	if (!(*e & I86_PDE_PRESENT))
@@ -57,7 +57,7 @@ static void	unmap_user_page(uint32_t virt)
 
 		if (*pg & I86_PTE_PRESENT)
 		{
-			pmmngr_free_block(pt_entry_pfn(*pg));
+			pm_free(pt_entry_pfn(*pg));
 			*pg = 0;
 			__native_flush_tlb_single((virtual_addr)virt);
 		}
@@ -74,12 +74,12 @@ static int	usertask_ensure_code(void)
 	len = (uint32_t)(_binary_user_bin_end - _binary_user_bin_start);
 	if (len == 0 || len > PAGE_SIZE)
 		return (-1);
-	phys = pmmngr_alloc_block();
+	phys = pm_alloc();
 	if (!phys)
 		return (-1);
 	if (map_user_page(USER_ENTRY, phys) < 0)
 	{
-		pmmngr_free_block(phys);
+		pm_free(phys);
 		return (-1);
 	}
 	memcpy((void*)USER_ENTRY, _binary_user_bin_start, len);
@@ -87,7 +87,7 @@ static int	usertask_ensure_code(void)
 	return (0);
 }
 
-int	usertask_spawn(const char *name)
+int	utask_spawn(const char *name)
 {
 	int		slot = -1;
 	void	*phys;
@@ -97,7 +97,7 @@ int	usertask_spawn(const char *name)
 	for (int i = 0; i < USER_MAX_TASKS; i++)
 	{
 		if (g_user_slots[i] == 0 ||
-			!sched_pid_alive((uint32_t)g_user_slots[i]))
+			!sched_alive((uint32_t)g_user_slots[i]))
 		{
 			slot = i;
 			break;
@@ -109,17 +109,17 @@ int	usertask_spawn(const char *name)
 		return (-1);
 
 	stack_virt = USER_STACK_BASE + (uint32_t)slot * USER_STACK_SIZE;
-	phys = pmmngr_alloc_block();
+	phys = pm_alloc();
 	if (!phys)
 		return (-1);
 	if (g_user_slots[slot] != 0)
 		unmap_user_page(stack_virt);
 	if (map_user_page(stack_virt, phys) < 0)
 	{
-		pmmngr_free_block(phys);
+		pm_free(phys);
 		return (-1);
 	}
-	pid = sched_add_user_task(name, USER_ENTRY,
+	pid = sched_add(name, USER_ENTRY,
 		stack_virt + USER_STACK_SIZE - 16);
 	if (pid < 0)
 	{

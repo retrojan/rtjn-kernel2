@@ -16,30 +16,30 @@
 
 void		shell(void);
 
-void	map_range_identity(uintptr_t base, uint32_t len)
+void	map_ident(uintptr_t base, uint32_t len)
 {
 	uintptr_t	page;
 
 	page = base & ~0xFFF;
 	for (; page < base + len; page += PAGE_SIZE)
 	{
-		vmmngr_map_page((void*)page, (void*)page);
+		vm_map_page((void*)page, (void*)page);
 		__native_flush_tlb_single((virtual_addr)page);
 	}
 }
 
 void	kernel_main(multiboot_info_t* mbd, uint32_t magic)
 {
-	install_gdt();
-	install_idt();
-	install_irq();
+	gdt_init();
+	idt_init();
+	irq_init();
 
-	init_physical_memory(mbd, magic);
-	init_virtual_memory();
+	pm_init(mbd, magic);
+	vm_init();
 
 	tss_init();
 	tss_load();
-	sched_init_kernel();
+	sched_init();
 	__asm__ volatile ("sti"); //Enable interrupts after scheduler init
 
 	ata_init();
@@ -51,6 +51,6 @@ void	kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	net_init();
 	net_driver_init();
 
-	init_term();
+	term_init();
 	shell();
 }

@@ -41,16 +41,16 @@ static void	shutdown(void)
 
 static void	print_banner(void)
 {
-    uint8_t	saved = terminal_color;
+    uint8_t	saved = t_color;
 
     printk("  .............\n");
     printk(" `/..@@@@@@@@.\\\\.\n");
     printk("``@`/......\\\\@.\\\\\n");
     printk("\\\\\\\\\\      \\`@```\n");
     printk(" ``@``     .//@//	" "	rtjn-kernel ");
-    terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+    term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
     printk("%s", RTJN_VERSION);
-    terminal_setcolor(saved);
+    term_setcolor(saved);
     printk("\n");
     printk(" `\\.`\\....//.@///\n");
     printk("  \\`@\\@@@@@\\@```\n");

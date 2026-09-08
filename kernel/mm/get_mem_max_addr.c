@@ -4,7 +4,7 @@
 #include "multiboot.h"
 #include "memory.h"
 
-uint32_t	get_mem_max_addr(multiboot_info_t *mbd, uint32_t magic)
+uint32_t	ram_max(multiboot_info_t *mbd, uint32_t magic)
 {
 	uint32_t				addr_min = 0xFFFFFFFF;
 	uint32_t				addr_max = 0x0;
@@ -18,7 +18,7 @@ uint32_t	get_mem_max_addr(multiboot_info_t *mbd, uint32_t magic)
     for (i = 0; i < mbd->mmap_length; i += sizeof(multiboot_memory_map_t))
     {
         multiboot_memory_map_t *mmmt = (multiboot_memory_map_t*)(mbd->mmap_addr + i);
-		if (KFS_DEBUG)
+		if (KDEBUG)
 			printk("Start Addr: %x | Length: %x | Size: %d | Type: %d\n",
 				mmmt->addr_low, mmmt->len_low, mmmt->size, mmmt->type);
 
@@ -31,7 +31,7 @@ uint32_t	get_mem_max_addr(multiboot_info_t *mbd, uint32_t magic)
 				addr_max = tmp;
         }
     }
-	if (KFS_DEBUG)
+	if (KDEBUG)
 		printk("min address: 0x%x   max address: 0x%x\n", addr_min, addr_max);
 	return (addr_max);
 }

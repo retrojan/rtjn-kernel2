@@ -62,7 +62,7 @@ static void	sched_build_initial_frame(task_t *t)
 	t->saved_esp = (uint32_t)&fr->gs;
 }
 
-int	sched_init_kernel(void)
+int	sched_init(void)
 {
 	bzero(g_tasks, sizeof(g_tasks));
 
@@ -84,7 +84,7 @@ int	sched_init_kernel(void)
 	return (0);
 }
 
-int	sched_add_user_task(const char *name, uint32_t entry, uint32_t user_esp)
+int	sched_add(const char *name, uint32_t entry, uint32_t user_esp)
 {
 	int	slot = -1;
 
@@ -196,12 +196,12 @@ void	sched_exit(int status)
 	sched_force_switch = 1;
 }
 
-uint32_t	sched_current_pid(void)
+uint32_t	sched_pid(void)
 {
 	return (g_tasks[g_cur].pid);
 }
 
-int	sched_task_count(void)
+int	sched_count(void)
 {
 	int	n = 0;
 
@@ -211,7 +211,7 @@ int	sched_task_count(void)
 	return (n);
 }
 
-int	sched_pid_alive(uint32_t pid)
+int	sched_alive(uint32_t pid)
 {
 	for (int i = 0; i < SCHED_MAX_TASKS; i++)
 	{
@@ -222,7 +222,7 @@ int	sched_pid_alive(uint32_t pid)
 	return (0);
 }
 
-void	sched_list_tasks(void)
+void	sched_list(void)
 {
 	static const char	*st[] = { "empty", "ready", "running", "zombie" };
 

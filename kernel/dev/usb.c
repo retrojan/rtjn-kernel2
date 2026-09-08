@@ -316,7 +316,7 @@ int	ehci_init(pci_device_t *dev)
 	ehci_ctrls[ctrl_index].initialized = 0;
 
 	/* Identity-map the MMIO region */
-	map_range_identity(ehci_ctrls[ctrl_index].phys_base, 1024);
+	map_ident(ehci_ctrls[ctrl_index].phys_base, 1024);
 
 	volatile uint8_t	*base = ehci_ctrls[ctrl_index].mmio_base;
 

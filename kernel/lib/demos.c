@@ -55,18 +55,18 @@ void	demo_paging(void)
 {
 	printk("char *a = vmalloc(1)\n");
 	char *a = vmalloc(1);
-	printk("vmmngr_dump_alloc(a)\n");
-	vmmngr_dump_alloc(a);
+	printk("vm_dump_alloc(a)\n");
+	vm_dump_alloc(a);
 	printk("char *b = vmalloc(4097)\n");
 	char *b = vmalloc(4097);
-	printk("vmmngr_dump_alloc(b)\n");
-	vmmngr_dump_alloc(b);
+	printk("vm_dump_alloc(b)\n");
+	vm_dump_alloc(b);
 	printk("vfree(a)\n");
 	vfree(a);
 	printk("k/v malloc(13000)\n");
 	char *c = vmalloc(13000);
-	printk("vmmngr_dump_alloc(c)\n");
-	vmmngr_dump_alloc(c);
+	printk("vm_dump_alloc(c)\n");
+	vm_dump_alloc(c);
 }
 
 void	demo_page_panic(void)

@@ -72,7 +72,7 @@ typedef struct vfs_fd
 void		vfs_init(void);
 
 /* registration */
-int			vfs_register_fs(vfs_fs_ops_t *ops);
+int			vfs_add_fs(vfs_fs_ops_t *ops);
 int			vfs_mount(const char *device, const char *path, const char *fs_type);
 int			vfs_unmount(const char *path);
 
@@ -83,17 +83,17 @@ int			vfs_write(int fd, const uint8_t *buf, uint32_t size);
 int			vfs_close(int fd);
 int			vfs_open(const char *path, int flags);
 int			vfs_stat(const char *path, uint32_t *size, uint32_t *type);
-int		vfs_read_dir(const char *path, uint32_t index, vfs_node_t *out);
+int		vfs_readdir(const char *path, uint32_t index, vfs_node_t *out);
 int		vfs_mkdir(const char *path);
 int		vfs_create(const char *path, uint32_t flags);
 int		vfs_unlink(const char *path);
 int		vfs_rmdir(const char *path);
-int		vfs_rm_recursive(const char *path);
+int		vfs_rmtree(const char *path);
 int		vfs_rename(const char *oldpath, const char *newpath);
 int		vfs_truncate(const char *path, uint32_t new_size);
 
 /* Resolve a path to its parent directory, returning the leaf name in child_name.
  * Used by file/directory creation commands. */
-vfs_node_t	*vfs_resolve_parent_exported(const char *path, char *child_name, size_t child_sz);
+vfs_node_t	*vfs_parent(const char *path, char *child_name, size_t child_sz);
 
 #endif

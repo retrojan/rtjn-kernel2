@@ -34,7 +34,7 @@ static char	*exception_msgs[32] =
 		"Reserved"
 	};
 
-void	exception_handler(regs_t *re)
+void	exc_handler(regs_t *re)
 {
 	if (re->int_no >= 32)
 	{
@@ -51,7 +51,7 @@ void	exception_handler(regs_t *re)
 		if (re->cs & 3)
 		{
 			printk("\n[user pid %d] %s fault (eip=0x%x err=0x%x) - killing task\n",
-				sched_current_pid(), exception_msgs[re->int_no], re->eip,
+				sched_pid(), exception_msgs[re->int_no], re->eip,
 				re->err_code);
 			sched_exit(1);
 			return;

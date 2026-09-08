@@ -4,42 +4,42 @@
 # include <stdint.h>
 # include "multiboot.h"
 
-# define	KFS_DEBUG				0
-# define	KFS_PM_BLOCK_SIZE		4096
-# define	KFS_PM_MMAP_SIZE		32768
+# define	KDEBUG				0
+# define	PM_BLOCK_SIZE		4096
+# define	PM_BITMAP_SIZE		32768
 
-uint32_t	get_mem_max_addr(multiboot_info_t *mbd, uint32_t magic);
-void		init_physical_memory(multiboot_info_t *mbd, uint32_t magic);
-void		init_virtual_memory(void);
-void		*pmmngr_alloc_blocks(uint32_t n);
-void		*pmmngr_alloc_block(void);
-void		pmmngr_free_block(void *block_paddr);
+uint32_t	ram_max(multiboot_info_t *mbd, uint32_t magic);
+void		pm_init(multiboot_info_t *mbd, uint32_t magic);
+void		vm_init(void);
+void		*pm_alloc_blocks(uint32_t n);
+void		*pm_alloc(void);
+void		pm_free(void *block_paddr);
 
-extern uint32_t	_pmmngr_map[KFS_PM_MMAP_SIZE];
-extern uint32_t	_pmmngr_size;
-extern uint32_t	_pmmngr_max_blocks;
-extern uint32_t	_pmmngr_used_blocks;
+extern uint32_t	_pm_map[PM_BITMAP_SIZE];
+extern uint32_t	_pm_size;
+extern uint32_t	_pm_blocks;
+extern uint32_t	_pm_used;
 
 typedef	uint32_t	physical_addr;
 
 static inline void		mmap_set(uint32_t bit)
 {
-	_pmmngr_map[bit / 32] |= (1 << (bit & 31));
+	_pm_map[bit / 32] |= (1 << (bit & 31));
 }
 
 static inline void		mmap_unset(uint32_t bit)
 {
-	_pmmngr_map[bit / 32] &= ~ (1 << (bit % 32));
+	_pm_map[bit / 32] &= ~ (1 << (bit % 32));
 }
 
 static inline uint32_t	mmap_test(uint32_t bit)
 {
-	return (_pmmngr_map[bit / 32] & (1 << (bit & 31)));
+	return (_pm_map[bit / 32] & (1 << (bit & 31)));
 }
 
-static inline uint32_t	pmmngr_free_blocks_count(void)
+static inline uint32_t	pm_free_count(void)
 {
-	return (_pmmngr_max_blocks - _pmmngr_used_blocks);
+	return (_pm_blocks - _pm_used);
 }
 
 
@@ -123,12 +123,12 @@ enum PAGE_PDE_FLAGS {
    	I86_PDE_FRAME			= 0x7FFFF000	//1111111111111111111000000000000
 };
 
-virtual_addr	get_available_virtual_addr(size_t nbr);
-pdirectory		*get_page_directory(void);
-size_t			vmmngr_alloc_size(const void *addr);
-void			vmmngr_map_page(void *phys, void *virt);
-void			vmmngr_alloc_free(const void *addr);
-void			vmmngr_dump_alloc(const void *addr);
+virtual_addr	vm_find_free(size_t nbr);
+pdirectory		*vm_page_dir(void);
+size_t			vm_alloc_size(const void *addr);
+void			vm_map_page(void *phys, void *virt);
+void			vm_alloc_free(const void *addr);
+void			vm_dump_alloc(const void *addr);
 
 static inline void	pd_entry_add_attrib(pd_entry *e, uint32_t attribute)
 {
@@ -166,6 +166,6 @@ size_t	ksize(const void *addr);
 void	kfree(const void *addr);
 void	*kmalloc(uint32_t size);
 
-void	map_range_identity(uintptr_t base, uint32_t len);
+void	map_ident(uintptr_t base, uint32_t len);
 
 #endif

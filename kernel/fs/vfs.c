@@ -72,7 +72,7 @@ static vfs_node_t	*vfs_lookup(vfs_node_t *dir, const char *name)
 }
 
 /* Resolve the parent directory of path and copy the leaf name into child_name. */
-static vfs_node_t	*vfs_resolve_parent(const char *path, char *child_name, size_t child_sz)
+static vfs_node_t	*vfs_find_parent(const char *path, char *child_name, size_t child_sz)
 {
 	const char	*p = vfs_skip_slashes(path);
 	char		component[64];
@@ -105,10 +105,10 @@ static vfs_node_t	*vfs_resolve_parent(const char *path, char *child_name, size_t
 	return (node);
 }
 
-/* Public wrapper for vfs_resolve_parent, used by creation commands */
-vfs_node_t	*vfs_resolve_parent_exported(const char *path, char *child_name, size_t child_sz)
+/* Public wrapper for vfs_find_parent, used by creation commands */
+vfs_node_t	*vfs_parent(const char *path, char *child_name, size_t child_sz)
 {
-	return (vfs_resolve_parent(path, child_name, child_sz));
+	return (vfs_find_parent(path, child_name, child_sz));
 }
 
 void	vfs_init(void)
@@ -120,7 +120,7 @@ void	vfs_init(void)
 	vfs_root = 0;
 }
 
-int	vfs_register_fs(vfs_fs_ops_t *ops)
+int	vfs_add_fs(vfs_fs_ops_t *ops)
 {
 	if (!ops || !ops->name || !ops->mount)
 		return (VFS_ERR);
@@ -212,7 +212,7 @@ vfs_node_t	*vfs_open_node(const char *path)
 	if (path[0] == '/' && path[1] == 0)
 		return (vfs_root);
 
-	parent = vfs_resolve_parent(path, comp, sizeof(comp));
+	parent = vfs_find_parent(path, comp, sizeof(comp));
 	if (!parent)
 		return (0);
 	return (vfs_lookup(parent, comp));
@@ -227,7 +227,7 @@ int	vfs_open(const char *path, int flags)
 		/* Path doesn't exist yet — try to create it.
 		 * We need to find the parent directory and the leaf name. */
 		char	leaf[64];
-		vfs_node_t	*parent = vfs_resolve_parent(path, leaf, sizeof(leaf));
+		vfs_node_t	*parent = vfs_find_parent(path, leaf, sizeof(leaf));
 
 		if (!parent || leaf[0] == 0)
 			return (VFS_ERR_NOT_FOUND);
@@ -306,7 +306,7 @@ int	vfs_stat(const char *path, uint32_t *size, uint32_t *type)
 	return (VFS_OK);
 }
 
-int	vfs_read_dir(const char *path, uint32_t index, vfs_node_t *out)
+int	vfs_readdir(const char *path, uint32_t index, vfs_node_t *out)
 {
 	vfs_node_t	*node = vfs_open_node(path);
 
@@ -342,7 +342,7 @@ int	vfs_unlink(const char *path)
 	if (node->flags == VFS_FT_DIR)
 		return (VFS_ERR_IS_DIR);
 
-	parent = vfs_resolve_parent(path, leaf, sizeof(leaf));
+	parent = vfs_find_parent(path, leaf, sizeof(leaf));
 	if (!parent || leaf[0] == 0)
 		return (VFS_ERR_NOT_FOUND);
 	if (ext2_remove_file(&ext2_fs, parent->inode, leaf) != 0)
@@ -364,7 +364,7 @@ int	vfs_rmdir(const char *path)
 	if (node->flags != VFS_FT_DIR)
 		return (VFS_ERR_IS_FILE);
 
-	parent = vfs_resolve_parent(path, leaf, sizeof(leaf));
+	parent = vfs_find_parent(path, leaf, sizeof(leaf));
 	if (!parent || leaf[0] == 0)
 		return (VFS_ERR_NOT_FOUND);
 	if (ext2_remove_dir(&ext2_fs, parent->inode, leaf) != 0)
@@ -373,7 +373,7 @@ int	vfs_rmdir(const char *path)
 }
 
 /* Recursively remove a file or a directory tree. */
-int	vfs_rm_recursive(const char *path)
+int	vfs_rmtree(const char *path)
 {
 	vfs_node_t	*node;
 	vfs_node_t	child;
@@ -387,9 +387,9 @@ int	vfs_rm_recursive(const char *path)
 	if (node->flags != VFS_FT_DIR)
 		return (vfs_unlink(path));
 
-	if (vfs_read_dir(path, 0, &child) != VFS_OK)
+	if (vfs_readdir(path, 0, &child) != VFS_OK)
 		return (VFS_ERR);
-	while (vfs_read_dir(path, index, &child) == VFS_OK)
+	while (vfs_readdir(path, index, &child) == VFS_OK)
 	{
 		if (strcmp(child.name, ".") == 0 || strcmp(child.name, "..") == 0)
 		{
@@ -400,7 +400,7 @@ int	vfs_rm_recursive(const char *path)
 		{
 			snprintf(cpath, sizeof(cpath), "%s/%s", path, child.name);
 			if (child.flags == VFS_FT_DIR)
-				vfs_rm_recursive(cpath);
+				vfs_rmtree(cpath);
 			else
 				vfs_unlink(cpath);
 		}
@@ -426,7 +426,7 @@ int	vfs_rename(const char *oldpath, const char *newpath)
 	if (vfs_open_node(oldpath) == 0)
 		return (VFS_ERR_NOT_FOUND);
 
-	old_parent = vfs_resolve_parent(oldpath, old_leaf, sizeof(old_leaf));
+	old_parent = vfs_find_parent(oldpath, old_leaf, sizeof(old_leaf));
 	if (!old_parent || old_leaf[0] == 0)
 		return (VFS_ERR_NOT_FOUND);
 
@@ -441,7 +441,7 @@ int	vfs_rename(const char *oldpath, const char *newpath)
 		newpath = buf;
 	}
 
-	new_parent = vfs_resolve_parent(newpath, new_leaf, sizeof(new_leaf));
+	new_parent = vfs_find_parent(newpath, new_leaf, sizeof(new_leaf));
 	if (!new_parent || new_leaf[0] == 0)
 		return (VFS_ERR_NOT_FOUND);
 

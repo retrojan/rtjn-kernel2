@@ -8,7 +8,7 @@ __attribute__((aligned(0x10)))
 static idt_entry_t	idt[256];
 idtr_t		idtr;
 
-void	set_idt_descriptor(uint8_t vector, void *isr, uint8_t flags)
+void	idt_set(uint8_t vector, void *isr, uint8_t flags)
 {
 	idt_entry_t		*desc = &idt[vector];
 
@@ -19,16 +19,16 @@ void	set_idt_descriptor(uint8_t vector, void *isr, uint8_t flags)
 	desc->reserved = 0;
 }
 
-void	install_idt(void)
+void	idt_init(void)
 {
 	idtr.base = (uint32_t)&idt[0];
 	idtr.limit = (sizeof(idt_entry_t) * 256) - 1;
 	for (int i = 0; i < 32; i++)
 	{
-		set_idt_descriptor(i, isr_stub_table[i], 0x8E);
+		idt_set(i, isr_stub_table[i], 0x8E);
 	}
 	/* Ring-3 callable syscall gate: present, DPL 3, 32-bit interrupt gate. */
-	set_idt_descriptor(0x80, syscall_stub, 0xEE);
+	idt_set(0x80, syscall_stub, 0xEE);
 
 	load_idt();
 }

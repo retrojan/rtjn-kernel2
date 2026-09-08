@@ -8,10 +8,10 @@
 #include "string.h"
 #include "printk.h"
 
-size_t terminal_row = 0;
-size_t terminal_column = 0;
-uint8_t terminal_color = VGA_ENTRY_COLOR(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-uint16_t* terminal_buffer = (uint16_t*)0xB8000;
+size_t t_row = 0;
+size_t t_col = 0;
+uint8_t t_color = VGA_ENTRY_COLOR(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+uint16_t* t_buf = (uint16_t*)0xB8000;
 size_t term_width = VGA_WIDTH;
 size_t term_height = VGA_HEIGHT;
 
@@ -25,20 +25,20 @@ size_t	term_get_height(void)
 	return (term_height);
 }
 
-void	init_term(void)
+void	term_init(void)
 {
 	term_width = VGA_WIDTH;
 	term_height = VGA_HEIGHT;
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-	terminal_buffer = (uint16_t*)0xB8000;
+	t_row = 0;
+	t_col = 0;
+	t_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	t_buf = (uint16_t*)0xB8000;
 	for (size_t y = 0; y < VGA_HEIGHT; y++)
 	{
 		for (size_t x = 0; x < VGA_WIDTH; x++)
 		{
 			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = vga_entry(' ', terminal_color);
+			t_buf[index] = vga_entry(' ', t_color);
 		}
 	}
 	enable_cursor(0, 15);
@@ -53,16 +53,16 @@ static void	fb_sync_all(void)
 	{
 		for (size_t x = 0; x < term_width && x < TERM_MAX_W; x++)
 		{
-			uint16_t cell = terminal_buffer[y * term_width + x];
+			uint16_t cell = t_buf[y * term_width + x];
 			fb_render_cell(x, y, (char)(cell & 0xFF), (uint8_t)((cell >> 8) & 0x0F), (uint8_t)(((cell >> 8) >> 4) & 0x0F));
 		}
 	}
 }
 
-void	terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
+void	term_putch_at(char c, uint8_t color, size_t x, size_t y)
 {
 	const size_t index = y * term_width + x;
-	terminal_buffer[index] = vga_entry(c, color);
+	t_buf[index] = vga_entry(c, color);
 	if (term_fb_mode)
 		fb_render_cell(x, y, c, (uint8_t)(color & 0x0F), (uint8_t)((color >> 4) & 0x0F));
 }
@@ -74,37 +74,37 @@ static void shift_terminal_content(void)
 		for (size_t x = 0; x < term_width; x++)
 		{
 			const size_t index = y * term_width + x;
-			terminal_buffer[index] = terminal_buffer[index + term_width];
+			t_buf[index] = t_buf[index + term_width];
 		}
 	}
 	for (size_t x = 0; x < term_width; x++)
 	{
 		const size_t index = (term_height - 1) * term_width + x;
-		terminal_buffer[index] = vga_entry(' ', terminal_color);
+		t_buf[index] = vga_entry(' ', t_color);
 	}
 	if (term_fb_mode)
 		fb_sync_all();
 }
 
-void	terminal_clear(void)
+void	term_clear(void)
 {
 	for (size_t y = 0; y < term_height && y < TERM_MAX_H; y++)
 	{
 		for (size_t x = 0; x < term_width && x < TERM_MAX_W; x++)
 		{
-			terminal_buffer[y * term_width + x] = vga_entry(' ', terminal_color);
+			t_buf[y * term_width + x] = vga_entry(' ', t_color);
 		}
 	}
-	terminal_row = 0;
-	terminal_column = 0;
+	t_row = 0;
+	t_col = 0;
 	if (term_fb_mode)
 	{
-		fb_clear_bg((uint8_t)((terminal_color >> 4) & 0x0F));
+		fb_clear_bg((uint8_t)((t_color >> 4) & 0x0F));
 		fb_sync_all();
 	}
 }
 
-int	terminal_set_framebuffer(uintptr_t addr, uint32_t pitch, uint32_t w, uint32_t h, uint32_t bpp)
+int	term_set_fb(uintptr_t addr, uint32_t pitch, uint32_t w, uint32_t h, uint32_t bpp)
 {
 	int ok;
 
@@ -116,15 +116,15 @@ int	terminal_set_framebuffer(uintptr_t addr, uint32_t pitch, uint32_t w, uint32_
 	ok = fb_init(addr, pitch, w, h, bpp);
 	if (!ok)
 		return (0);
-	terminal_buffer = fb_shadow;
+	t_buf = fb_shadow;
 	term_fb_mode = 1;
 	term_width = w / 8;
 	term_height = h / 16;
 	if (term_width < 1) term_width = 1;
 	if (term_height < 1) term_height = 1;
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	t_row = 0;
+	t_col = 0;
+	t_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 	fb_clear_bg(VGA_COLOR_BLACK);
 	fb_sync_all();
 	return (1);
@@ -134,31 +134,31 @@ static void	term_putchar(char c)
 {
 	if (c == '\n')
 	{
-		terminal_row++;
-		terminal_column = 0;
+		t_row++;
+		t_col = 0;
 	}
 	else if (c == '\t')
 	{
-		for (size_t i = 0; (terminal_column % 4 != 0 && (term_width - terminal_column) > 1) || i == 0; i++)
+		for (size_t i = 0; (t_col % 4 != 0 && (term_width - t_col) > 1) || i == 0; i++)
 		{
-			terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
-			terminal_column++;
+			term_putch_at(' ', t_color, t_col, t_row);
+			t_col++;
 		}
 	}
 	else
 	{
-		terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-		terminal_column++;
-		if (terminal_column == term_width)
+		term_putch_at(c, t_color, t_col, t_row);
+		t_col++;
+		if (t_col == term_width)
 		{
-			terminal_column = 0;
-			terminal_row++;
+			t_col = 0;
+			t_row++;
 		}
 	}
-	if (terminal_row == term_height)
+	if (t_row == term_height)
 	{
 		shift_terminal_content();
-		terminal_row--;
+		t_row--;
 	}
 }
 
@@ -171,7 +171,7 @@ void	term_write(const char* data, size_t size)
 void puts(const char* data)
 {
 	term_write(data, strlen(data));
-	update_cursor(terminal_column, terminal_row);
+	update_cursor(t_col, t_row);
 }
 
 /* Longest single formatted value (e.g. a curl body) we buffer at once.
@@ -276,7 +276,7 @@ static void	get_bin(va_list *ap, char *loc_buff)
 static void	flush_printk_buff(char *buff, size_t *j)
 {
 	term_write(buff, *j);
-	update_cursor(terminal_column, terminal_row);
+	update_cursor(t_col, t_row);
 	*j = 0;
 }
 
@@ -297,7 +297,7 @@ static void	process_flag(va_list *ap, int flag, char *buff, size_t *j)
 		if (*j > 0)
 			flush_printk_buff(buff, j);
 		term_write(loc_buff, len);
-		update_cursor(terminal_column, terminal_row);
+		update_cursor(t_col, t_row);
 		return;
 	}
 	if (*j + len > PRINTK_BUFF_LEN)

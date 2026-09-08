@@ -11,9 +11,9 @@
 #define IRQ_VECTOR_OFFSET	32
 #define IS_IRQ_SLAVE(x)		x >= 40
 
-void	install_irq(void);
-void	install_irq_handler(int irq, void (*handler)(regs_t *re));
-void	uninstall_irq_handler(int irq);
+void	irq_init(void);
+void	irq_register(int irq, void (*handler)(regs_t *re));
+void	irq_unregister(int irq);
 
 
 

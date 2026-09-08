@@ -31,14 +31,14 @@ extern volatile uint32_t	sched_next_esp;
 extern volatile uint32_t	sched_force_switch;
 extern volatile int			sched_active;
 
-int			sched_init_kernel(void);
-int			sched_add_user_task(const char *name, uint32_t entry, uint32_t user_esp);
+int			sched_init(void);
+int			sched_add(const char *name, uint32_t entry, uint32_t user_esp);
 void		sched_tick(void);
 void		sched_yield(void);
 void		sched_exit(int status);
-uint32_t	sched_current_pid(void);
-int			sched_task_count(void);
-int			sched_pid_alive(uint32_t pid);
-void		sched_list_tasks(void);
+uint32_t	sched_pid(void);
+int			sched_count(void);
+int			sched_alive(uint32_t pid);
+void		sched_list(void);
 
 #endif

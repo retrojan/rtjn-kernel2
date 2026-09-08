@@ -5,7 +5,7 @@
 #include "term.h"
 
 extern void		*irq_stub_table[];
-void			timer_handler(regs_t *re);
+void			timer_int(regs_t *re);
 void			keyboard_handler(regs_t *re);
 
 void	*irq_routines[16] =
@@ -14,17 +14,17 @@ void	*irq_routines[16] =
 	0, 0, 0, 0, 0, 0, 0, 0
 };
 
-void	install_irq_handler(int irq, void (*handler)(regs_t *re))
+void	irq_register(int irq, void (*handler)(regs_t *re))
 {
 	irq_routines[irq] = handler;
 }
 
-void	uninstall_irq_handler(int irq)
+void	irq_unregister(int irq)
 {
 	irq_routines[irq] = 0;
 }
 
-static void	remap_irq(void)
+static void	irq_remap(void)
 {
 	//Seding the init command to Master and Slave PIC
 	outb(PIC_MASTER_0, 0x11);
@@ -50,14 +50,14 @@ static void	remap_irq(void)
 	outb(PIC_SLAVE_1, 0xFF);
 }
 
-void	install_irq(void)
+void	irq_init(void)
 {
-	remap_irq();
+	irq_remap();
 	for (int i = 0; i < 16; i++)
 	{
-		set_idt_descriptor(IRQ_VECTOR_OFFSET + i, irq_stub_table[i], 0x8E);
+		idt_set(IRQ_VECTOR_OFFSET + i, irq_stub_table[i], 0x8E);
 	}
-	install_irq_handler(0, timer_handler);
-	install_irq_handler(1, keyboard_handler);
+	irq_register(0, timer_int);
+	irq_register(1, keyboard_handler);
 }
 

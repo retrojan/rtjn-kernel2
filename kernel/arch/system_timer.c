@@ -5,7 +5,7 @@
 
 volatile uint32_t	timer_ticks = 0;
 
-void	timer_handler(regs_t *re)
+void	timer_int(regs_t *re)
 {
 	timer_ticks++;
 	sched_tick();

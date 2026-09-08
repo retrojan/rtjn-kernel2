@@ -101,7 +101,7 @@ static void	acpi_map(uint32_t phys, uint32_t len)
 
 	for (uint32_t p = base; p < base + len; p += PAGE_SIZE)
 	{
-		vmmngr_map_page((void*)p, (void*)p);
+		vm_map_page((void*)p, (void*)p);
 		__native_flush_tlb_single(p);
 	}
 }

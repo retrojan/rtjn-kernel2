@@ -1,4 +1,4 @@
-extern irq_handler
+extern irq_dispatch
 extern syscall_handler
 extern sched_cur_esp
 extern sched_next_esp
@@ -59,7 +59,7 @@ irq_common_stub:
 	mov		gs, ax
 	mov		eax, esp
 	push	eax
-	mov		eax, irq_handler
+	mov		eax, irq_dispatch
 	call	eax
 	add		esp, 4
 	mov		eax, [sched_active]

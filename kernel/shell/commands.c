@@ -30,8 +30,8 @@ extern volatile uint32_t	timer_ticks;
 extern volatile uint8_t		in_read;
 extern volatile char		read_key;
 extern volatile uint8_t		cancel_input;
-extern uint32_t				_pmmngr_max_blocks;
-extern uint32_t				_pmmngr_used_blocks;
+extern uint32_t				_pm_blocks;
+extern uint32_t				_pm_used;
 extern void					*irq_routines[];
 
 //  GLOBAL SHELL STATE 
@@ -152,7 +152,7 @@ int	cmd_help(int argc, char **argv)
 int	cmd_clear(int argc, char **argv)
 {
 	(void)argc; (void)argv;
-	terminal_clear();
+	term_clear();
 	return (0);
 }
 
@@ -190,12 +190,12 @@ int	cmd_meminfo(int argc, char **argv)
 {
 	(void)argc; (void)argv;
 	printk("Physical memory:\n");
-	printk("  max blocks : %d\n", _pmmngr_max_blocks);
-	printk("  used blocks: %d\n", _pmmngr_used_blocks);
-	printk("  free blocks: %d\n", _pmmngr_max_blocks - _pmmngr_used_blocks);
-	printk("  total      : %d KB\n", (_pmmngr_max_blocks * 4096) / 1024);
-	printk("  used       : %d KB\n", (_pmmngr_used_blocks * 4096) / 1024);
-	printk("  free       : %d KB\n", ((_pmmngr_max_blocks - _pmmngr_used_blocks) * 4096) / 1024);
+	printk("  max blocks : %d\n", _pm_blocks);
+	printk("  used blocks: %d\n", _pm_used);
+	printk("  free blocks: %d\n", _pm_blocks - _pm_used);
+	printk("  total      : %d KB\n", (_pm_blocks * 4096) / 1024);
+	printk("  used       : %d KB\n", (_pm_used * 4096) / 1024);
+	printk("  free       : %d KB\n", ((_pm_blocks - _pm_used) * 4096) / 1024);
 	return (0);
 }
 
@@ -215,12 +215,18 @@ int	cmd_history(int argc, char **argv)
 }
 
 int	cmd_logo(int argc, char **argv)
-{	
+{
+uint8_t	saved = t_color;
+
     printk("  .............\n");
     printk(" `/..@@@@@@@@.\\\\.\n");
     printk("``@`/......\\\\@.\\\\\n");
     printk("\\\\\\\\\\      \\`@```\n");
-    printk(" ``@``     .//@//	" "	rtjn-kernel %s\n",RTJN_VERSION);
+    printk(" ``@``     .//@//	" "	rtjn-kernel ");
+    term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+    printk("%s", RTJN_VERSION);
+    term_setcolor(saved);
+    printk("\n");
     printk(" `\\.`\\....//.@///\n");
     printk("  \\`@\\@@@@@\\@```\n");
     printk(" ``@`/....\\\\@.\\.\n");
@@ -271,7 +277,7 @@ int	cmd_color(int argc, char **argv)
 			uint8_t bg = VGA_COLOR_BLACK;
 			if (argc > 2)
 				bg = (uint8_t)atoi(argv[2]) & 0xF;
-			terminal_setcolor(vga_entry_color((enum vga_color)palette[i], (enum vga_color)bg));
+			term_setcolor(vga_entry_color((enum vga_color)palette[i], (enum vga_color)bg));
 			return (0);
 		}
 	}
@@ -282,15 +288,15 @@ int	cmd_color(int argc, char **argv)
 int	cmd_ctest(int argc, char **argv)
 {
 	(void)argc; (void)argv;
-	uint8_t	saved = terminal_color;
+	uint8_t	saved = t_color;
 
 	for (int i = 0; i < 16; i++)
 	{
-		terminal_setcolor(vga_entry_color((enum vga_color)i, VGA_COLOR_BLACK));
+		term_setcolor(vga_entry_color((enum vga_color)i, VGA_COLOR_BLACK));
 		printk("Color %2d  ABCDEF ", i);
 		printk("\n");
 	}
-	terminal_setcolor(saved);
+	term_setcolor(saved);
 	printk("Color test complete.\n");
 	return (0);
 }
@@ -408,8 +414,8 @@ int	cmd_cpuid(int argc, char **argv)
 int	cmd_gdt(int argc, char **argv)
 {
 	(void)argc; (void)argv;
-	gdt_ptr	ptr;
-	gdt_entry *e;
+	gdt_ptr_t	ptr;
+	gdt_entry_t *e;
 	int		entries;
 
 	asm volatile("sgdt %0" : "=m"(ptr) : : "memory");
@@ -417,7 +423,7 @@ int	cmd_gdt(int argc, char **argv)
 	entries = (ptr.limit + 1) / 8;
 	if (entries > 16)
 		entries = 16;
-	e = (gdt_entry*)ptr.base;
+	e = (gdt_entry_t*)ptr.base;
 	for (int i = 0; i < entries; i++)
 	{
 		printk("  [%d] base=0x%x access=0x%x flags=0x%x\n", i,
@@ -563,7 +569,7 @@ int	cmd_cpu(int argc, char **argv)
 int	cmd_ps(int argc, char **argv)
 {
 	(void)argc; (void)argv;
-	sched_list_tasks();
+	sched_list();
 	return (0);
 }
 
@@ -571,7 +577,7 @@ int	cmd_exec(int argc, char **argv)
 {
 	int	pid;
 
-	pid = usertask_spawn(argc > 1 ? argv[1] : "usertask");
+	pid = utask_spawn(argc > 1 ? argv[1] : "usertask");
 	if (pid < 0)
 	{
 		printk("exec: could not start a user task\n");
@@ -756,7 +762,7 @@ int	cmd_ls(int argc, char **argv)
 		path = argv[1];
 	vfs_cmd_resolve(path, full, sizeof(full));
 
-	while (vfs_read_dir(full, index, &node) == VFS_OK)
+	while (vfs_readdir(full, index, &node) == VFS_OK)
 	{
 		if (node.flags == VFS_FT_DIR)
 			printk("%s/\n", node.name);
@@ -857,7 +863,7 @@ int	cmd_touch(int argc, char **argv)
 	}
 
 	vfs_cmd_resolve(argv[1], full, sizeof(full));
-	parent = vfs_resolve_parent_exported(full, leaf, sizeof(leaf));
+	parent = vfs_parent(full, leaf, sizeof(leaf));
 	if (!parent || leaf[0] == 0)
 	{
 		printk("touch: cannot create '%s'\n", argv[1]);
@@ -887,7 +893,7 @@ int	cmd_mkdir(int argc, char **argv)
 	}
 
 	vfs_cmd_resolve(argv[1], full, sizeof(full));
-	parent = vfs_resolve_parent_exported(full, leaf, sizeof(leaf));
+	parent = vfs_parent(full, leaf, sizeof(leaf));
 	if (!parent || leaf[0] == 0)
 	{
 		printk("mkdir: cannot create '%s'\n", argv[1]);
@@ -924,7 +930,7 @@ int	cmd_echo_write(int argc, char **argv)
 	{
 		/* Just touch the file */
 		vfs_cmd_resolve(argv[1], full, sizeof(full));
-		parent = vfs_resolve_parent_exported(full, leaf, sizeof(leaf));
+		parent = vfs_parent(full, leaf, sizeof(leaf));
 		if (!parent || leaf[0] == 0)
 		{
 			printk("echo: cannot create '%s'\n", argv[1]);
@@ -952,7 +958,7 @@ int	cmd_echo_write(int argc, char **argv)
 	}
 	content[pos] = 0;
 
-	parent = vfs_resolve_parent_exported(full, leaf, sizeof(leaf));
+	parent = vfs_parent(full, leaf, sizeof(leaf));
 	if (!parent || leaf[0] == 0)
 	{
 		printk("echo: cannot create '%s'\n", path);
@@ -1011,7 +1017,7 @@ int	cmd_rm(int argc, char **argv)
 			printk("rm: %s: is a directory (use rm -r)\n", argv[i]);
 			continue;
 		}
-		int	ret = recursive ? vfs_rm_recursive(full) : vfs_unlink(full);
+		int	ret = recursive ? vfs_rmtree(full) : vfs_unlink(full);
 		if (ret == VFS_OK)
 			printk("removed: %s\n", full);
 		else

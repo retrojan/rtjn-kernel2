@@ -244,7 +244,7 @@ static void	nano_draw(void)
 	int	r;
 	int	x;
 
-	terminal_clear();
+	term_clear();
 
 	/* Text area (everything above the status bar). */
 	for (r = 0; r < h - 1; r++)
@@ -259,29 +259,29 @@ static void	nano_draw(void)
 			int	ci = nano_scroll_x + x;
 
 			if (ci < NANO_MAX_COL && nano_lines[lineno][ci])
-				terminal_putentryat(nano_lines[lineno][ci], ed_color, (size_t)x, (size_t)r);
+				term_putch_at(nano_lines[lineno][ci], ed_color, (size_t)x, (size_t)r);
 			else
-				terminal_putentryat(' ', ed_color, (size_t)x, (size_t)r);
+				term_putch_at(' ', ed_color, (size_t)x, (size_t)r);
 		}
 	}
 	/* Blank remaining rows. */
 	for (; r < h - 1; r++)
 		for (int x = 0; x < w; x++)
-			terminal_putentryat(' ', ed_color, (size_t)x, (size_t)r);
+			term_putch_at(' ', ed_color, (size_t)x, (size_t)r);
 
 	/* Status bar. */
 	for (x = 0; x < w; x++)
-		terminal_putentryat(' ', bar_color, (size_t)x, (size_t)(h - 1));
+		term_putch_at(' ', bar_color, (size_t)x, (size_t)(h - 1));
 	if (nano_status[0])
 		for (i = 0; nano_status[i] && i < (size_t)w; i++)
-			terminal_putentryat(nano_status[i], bar_color, i, (size_t)(h - 1));
+			term_putch_at(nano_status[i], bar_color, i, (size_t)(h - 1));
 	else
 	{
 		snprintf(bar, sizeof(bar), "%s  [Ln %d, Col %d]%s  ^O save  ^X exit  ^G help",
 			nano_fname, nano_row + 1, nano_col + 1,
 			nano_modified ? "  [modified]" : "");
 		for (i = 0; bar[i] && i < (size_t)w; i++)
-			terminal_putentryat(bar[i], bar_color, i, (size_t)(h - 1));
+			term_putch_at(bar[i], bar_color, i, (size_t)(h - 1));
 	}
 
 	/* Place the hardware cursor. */
@@ -536,9 +536,9 @@ int	cmd_nano(int argc, char **argv)
 	}
 
 	/* Return the terminal to normal and print a fresh prompt line. */
-	terminal_clear();
-	terminal_row = 0;
-	terminal_column = 0;
+	term_clear();
+	t_row = 0;
+	t_col = 0;
 	update_cursor(0, 0);
 	return (0);
 }
@@ -2060,7 +2060,7 @@ static void	vi_draw(void)
 	int	x;
 	int	gnu_w = 0;
 
-	terminal_clear();
+	term_clear();
 	if (vi_show_nu || vi_show_rnu)
 		gnu_w = 4;
 	for (r = 0; r < h - 1; r++)
@@ -2069,9 +2069,9 @@ static void	vi_draw(void)
 
 		if (lineno >= vi_lcount)
 		{
-			terminal_putentryat('~', tilde_color, 0, (size_t)r);
+			term_putch_at('~', tilde_color, 0, (size_t)r);
 			for (x = 1; x < w; x++)
-				terminal_putentryat(' ', tilde_color, (size_t)x, (size_t)r);
+				term_putch_at(' ', tilde_color, (size_t)x, (size_t)r);
 			continue;
 		}
 		if (gnu_w > 0)
@@ -2087,7 +2087,7 @@ static void	vi_draw(void)
 				n = 9999;
 			snprintf(nbuf, sizeof(nbuf), "%4d", n);
 			for (x = 0; x < gnu_w; x++)
-				terminal_putentryat(nbuf[x], nu_color, (size_t)x, (size_t)r);
+				term_putch_at(nbuf[x], nu_color, (size_t)x, (size_t)r);
 		}
 		for (x = gnu_w; x < w; x++)
 		{
@@ -2129,12 +2129,12 @@ static void	vi_draw(void)
 				&& strncmp(&vi_lines[lineno][ci], vi_search_pat,
 					(size_t)vi_search_len) == 0)
 				color = search_hl_color;
-			terminal_putentryat(ch, color, (size_t)x, (size_t)r);
+			term_putch_at(ch, color, (size_t)x, (size_t)r);
 		}
 	}
 
 	for (x = 0; x < w; x++)
-		terminal_putentryat(' ', bar_color, (size_t)x, (size_t)(h - 1));
+		term_putch_at(' ', bar_color, (size_t)x, (size_t)(h - 1));
 
 	if (vi_mode == VI_M_CMD)
 	{
@@ -2143,7 +2143,7 @@ static void	vi_draw(void)
 			bar[1 + i] = vi_cmd[i];
 		bar[1 + (vi_cmd_len < w - 2 ? vi_cmd_len : w - 2)] = 0;
 		for (x = 0; bar[x] && x < w; x++)
-			terminal_putentryat(bar[x], bar_color, (size_t)x, (size_t)(h - 1));
+			term_putch_at(bar[x], bar_color, (size_t)x, (size_t)(h - 1));
 	}
 	else if (vi_mode == VI_M_SEARCH)
 	{
@@ -2152,12 +2152,12 @@ static void	vi_draw(void)
 			bar[1 + i] = vi_search_prompt[i];
 		bar[1 + (vi_search_prompt_len < w - 2 ? vi_search_prompt_len : w - 2)] = 0;
 		for (x = 0; bar[x] && x < w; x++)
-			terminal_putentryat(bar[x], bar_color, (size_t)x, (size_t)(h - 1));
+			term_putch_at(bar[x], bar_color, (size_t)x, (size_t)(h - 1));
 	}
 	else if (vi_msg[0])
 	{
 		for (int i = 0; vi_msg[i] && i < w; i++)
-			terminal_putentryat(vi_msg[i], bar_color, (size_t)i, (size_t)(h - 1));
+			term_putch_at(vi_msg[i], bar_color, (size_t)i, (size_t)(h - 1));
 	}
 	else
 	{
@@ -2178,7 +2178,7 @@ static void	vi_draw(void)
 		snprintf(bar, sizeof(bar), "%s  [Ln %d, Col %d]%s  %s",
 			vi_fname, vi_row + 1, vi_col + 1, flags, mode_str);
 		for (int i = 0; bar[i] && i < w; i++)
-			terminal_putentryat(bar[i], bar_color, (size_t)i, (size_t)(h - 1));
+			term_putch_at(bar[i], bar_color, (size_t)i, (size_t)(h - 1));
 	}
 
 	{
@@ -3029,9 +3029,9 @@ int	cmd_vi(int argc, char **argv)
 			vi_norm_key(ev);
 	}
 
-	terminal_clear();
-	terminal_row = 0;
-	terminal_column = 0;
+	term_clear();
+	t_row = 0;
+	t_col = 0;
 	update_cursor(0, 0);
 	return (0);
 }

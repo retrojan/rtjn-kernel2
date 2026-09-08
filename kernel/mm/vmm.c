@@ -10,17 +10,17 @@ ptable first_page_table __attribute__((aligned(4096)));
 extern void load_page_dir(pdirectory *dir);
 extern void enable_paging();
 
-pdirectory *get_page_directory(void)
+pdirectory *vm_page_dir(void)
 {
 	return (&page_directory);
 }
 
-void	init_virtual_memory(void)
+void	vm_init(void)
 {
 	//Initializing page_directory with ring 0, read/write and present = 0
 	for (size_t i = 0; i < 1024; i++)
 	{
-		ptable	*new_table = (ptable*)pmmngr_alloc_block();
+		ptable	*new_table = (ptable*)pm_alloc();
 		bzero(new_table, sizeof(ptable));
 		page_directory.m_entries[i] = (uint32_t)(new_table) | (I86_PDE_WRITABLE | I86_PDE_PRESENT);
 	}
@@ -43,9 +43,9 @@ void	init_virtual_memory(void)
 	enable_paging();
 }
 
-uint8_t		vmmngr_alloc_page(pt_entry *e)
+uint8_t		vm_alloc_page(pt_entry *e)
 {
-	void *p = pmmngr_alloc_block();
+	void *p = pm_alloc();
 
 	if (!p)
 		return (1);
@@ -55,23 +55,23 @@ uint8_t		vmmngr_alloc_page(pt_entry *e)
 	return (0);
 }
 
-void		vmmngr_free_page(pt_entry *e)
+void		vm_free_page(pt_entry *e)
 {
 	void *p = pt_entry_pfn(*e);
 
 	if (p)
-		pmmngr_free_block(p);
+		pm_free(p);
 	pt_entry_del_attrib(e, I86_PDE_PRESENT);
 }
 
-void		vmmngr_map_page(void *phys, void *virt)
+void		vm_map_page(void *phys, void *virt)
 {
-	pdirectory	*p = get_page_directory();
+	pdirectory	*p = vm_page_dir();
 	pd_entry	*e = &(p->m_entries[PAGE_DIR_INDEX((uint32_t)virt)]);
 
     if ((*e & I86_PDE_PRESENT) != I86_PDE_PRESENT)
     {
-    	ptable *table = (ptable*)pmmngr_alloc_block();
+    	ptable *table = (ptable*)pm_alloc();
     	if (!table)
     		return ;
     	bzero(table, sizeof(ptable));
@@ -90,7 +90,7 @@ void		vmmngr_map_page(void *phys, void *virt)
 
 static virtual_addr get_available_page_table(void)
 {
-	pdirectory *p = get_page_directory();
+	pdirectory *p = vm_page_dir();
 
 	for (size_t i = 0; i < PAGES_PER_DIR; i++)
 	{
@@ -102,10 +102,10 @@ static virtual_addr get_available_page_table(void)
 	return (0);
 }
 
-virtual_addr	get_available_virtual_addr(size_t nbr)
+virtual_addr	vm_find_free(size_t nbr)
 {
 	virtual_addr	vaddr;
-	pdirectory		*p = get_page_directory();
+	pdirectory		*p = vm_page_dir();
 	size_t			count = 0;
 
 	for (size_t i = 0; i < PAGES_PER_DIR; i++)
@@ -137,32 +137,32 @@ virtual_addr	get_available_virtual_addr(size_t nbr)
 	return (get_available_page_table());
 }
 
-size_t	vmmngr_alloc_size(const void *addr)
+size_t	vm_alloc_size(const void *addr)
 {
 	virtual_addr	vaddr = (virtual_addr)addr - 16;
 	return (*(size_t*)(vaddr + 4));
 }
 
-void	vmmngr_alloc_free(const void *addr)
+void	vm_alloc_free(const void *addr)
 {
 	virtual_addr	vaddr = (virtual_addr)addr - 16;
-	pdirectory		*p = get_page_directory();
+	pdirectory		*p = vm_page_dir();
 	size_t			pages_to_free = *(int*)vaddr;
 
 	for (size_t i = 0; i < pages_to_free; i++)
 	{
 		ptable *t = (ptable*)((uint32_t)p->m_entries[PAGE_DIR_INDEX(vaddr)] & I86_PDE_FRAME);
 		pt_entry *pd = &(t->m_entries[PAGE_TABLE_INDEX(vaddr)]);
-		vmmngr_free_page(pd);
+		vm_free_page(pd);
 		__native_flush_tlb_single(vaddr);
 		vaddr += 0x1000;
 	}
 }
 
-void	vmmngr_dump_alloc(const void *addr)
+void	vm_dump_alloc(const void *addr)
 {
 	virtual_addr	vaddr = (virtual_addr)addr - 16;
-	pdirectory		*p = get_page_directory();
+	pdirectory		*p = vm_page_dir();
 	size_t			pages_to_read = *(int*)vaddr;
 
 	for (size_t i = 0; i < pages_to_read; i++)

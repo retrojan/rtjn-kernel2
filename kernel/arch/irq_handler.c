@@ -4,7 +4,7 @@
 
 extern void		*irq_routines[];
 
-void	irq_handler(regs_t *re)
+void	irq_dispatch(regs_t *re)
 {
 	void	(*handler)(regs_t *re);
 

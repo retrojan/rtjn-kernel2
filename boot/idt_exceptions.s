@@ -54,7 +54,7 @@ isr_stub_table:
 %assign i i+1
 %endrep
 
-extern exception_handler
+extern exc_handler
 extern sched_cur_esp
 extern sched_force_switch
 extern sched_next_esp
@@ -72,7 +72,7 @@ isr_common_stub:
 	mov		gs, ax
 	mov		eax, esp				; Push the stack
 	push	eax
-	mov		eax, exception_handler
+	mov		eax, exc_handler
 	call	eax
 	pop		eax
 	mov		eax, [sched_force_switch]

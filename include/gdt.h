@@ -70,15 +70,15 @@ typedef struct __attribute__((packed))
 	uint8_t		flags:4;
 	uint8_t		base_high;
 
-} gdt_entry;
+} gdt_entry_t;
 
 typedef struct __attribute__((packed))
 {
 	uint16_t	limit;
 	uint32_t	base;
-} gdt_ptr;
+} gdt_ptr_t;
 
-void	install_gdt(void);
+void	gdt_init(void);
 void	tss_init(void);
 void	tss_load(void);
 void	tss_set_kernel_esp0(uint32_t esp);

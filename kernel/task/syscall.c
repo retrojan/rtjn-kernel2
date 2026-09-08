@@ -31,7 +31,7 @@ void	syscall_handler(regs_t *re)
 			sched_exit((int)re->ebx);
 			break;
 		case SYS_GETPID:
-			re->eax = sched_current_pid();
+			re->eax = sched_pid();
 			break;
 		case SYS_YIELD:
 			sched_yield();

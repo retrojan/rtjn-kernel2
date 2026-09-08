@@ -16,17 +16,17 @@ static void	backspace(size_t *i)
 	if (*i > 0)
 	{
 		(*i)--;
-		if (terminal_column == 0 && terminal_row != 0)
+		if (t_col == 0 && t_row != 0)
 		{
-			terminal_column = term_width - 1;
-			terminal_row -= 1;
+			t_col = term_width - 1;
+			t_row -= 1;
 		}
 		else
 		{
-			terminal_column -= 1;
+			t_col -= 1;
 		}
-		update_cursor(terminal_column, terminal_row);
-		terminal_putentryat(' ', terminal_color, terminal_column, terminal_row);
+		update_cursor(t_col, t_row);
+		term_putch_at(' ', t_color, t_col, t_row);
 	}
 }
 
@@ -63,7 +63,7 @@ int		readline(char *buf, size_t size)
 		if (do_clear_screen == 1)
 		{
 			do_clear_screen = 0;
-			terminal_clear();
+			term_clear();
 			printk("# %s> ", g_cwd);
 			i = 0;
 			buf[0] = 0;

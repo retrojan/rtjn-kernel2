@@ -1450,7 +1450,7 @@ static vfs_fs_ops_t	ext2_fs_ops = {
 
 int	ext2_vfs_register(void)
 {
-	return (vfs_register_fs(&ext2_fs_ops));
+	return (vfs_add_fs(&ext2_fs_ops));
 }
 
 /* Create a new file in the given VFS parent directory.

@@ -186,7 +186,7 @@ int	rtl8139_init(pci_device_t *dev)
 
 	/* hook the IRQ if a valid one was assigned */
 	if (dev->irq_line)
-		install_irq_handler(dev->irq_line, rtl8139_irq_handler);
+		irq_register(dev->irq_line, rtl8139_irq_handler);
 
 	rtl_up = 1;
 	return (0);
