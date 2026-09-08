@@ -8,6 +8,7 @@
 #include "acpi.h"
 #include "term.h"
 #include "vga.h"
+#include "memory.h"
 #define TERM_BUFF	255
 
 extern  volatile uint32_t	timer_ticks;
@@ -39,26 +40,129 @@ static void	shutdown(void)
 	acpi_shutdown();
 }
 
-static void	print_banner(void)
+static void	info_reset_color(void)
 {
-    uint8_t	saved = t_color;
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
+}
 
-    printk("  .............\n");
-    printk(" `/..@@@@@@@@.\\\\.\n");
-    printk("``@`/......\\\\@.\\\\\n");
-    printk("\\\\\\\\\\      \\`@```\n");
-    printk(" ``@``     .//@//	" "	rtjn-kernel ");
-    term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
-    printk("%s", RTJN_VERSION);
-    term_setcolor(saved);
-    printk("\n");
-    printk(" `\\.`\\....//.@///\n");
-    printk("  \\`@\\@@@@@\\@```\n");
-    printk(" ``@`/....\\\\@.\\.\n");
-    printk(" `\\@`\\     .\\\\@\\\\.\n");
-    printk("  \\`@\\`      \\\\.@``\n");
-    printk("  `\\./`       \\...\n");
-    printk("	...\n\n");
+static void	print_info_label(const char *label)
+{
+	uint8_t	saved = t_color;
+	size_t	len = strlen(label);
+
+	printk(" %s", label);
+	while (len++ < 8)
+		printk(" ");	/* pad the label so values align */
+	term_setcolor(saved);
+	printk(": ");
+}
+
+static void	print_cpu_brand(char *out, size_t out_size)
+{
+	char	brand[49];
+	uint32_t eax = 0;
+
+	out[0] = 0;
+	asm volatile("cpuid" : "=a"(eax) : "a"(0x80000000));
+	if (eax < 0x80000004)
+	{
+		strncpy(out, "unknown", out_size - 1);
+		out[out_size - 1] = 0;
+		return ;
+	}
+	for (uint32_t leaf = 0x80000002; leaf <= 0x80000004; leaf++)
+	{
+		uint32_t ebx = 0, ecx = 0, edx = 0;
+		asm volatile("cpuid"
+			: "=a"(eax), "=b"(ebx), "=c"(ecx), "=d"(edx) : "a"(leaf));
+		uint32_t	*word = (uint32_t*)(brand + (leaf - 0x80000002) * 16);
+		word[0] = eax; word[1] = ebx; word[2] = ecx; word[3] = edx;
+	}
+	brand[48] = 0;
+	strncpy(out, brand, out_size - 1);
+	out[out_size - 1] = 0;
+}
+
+#define BANNER_LOGO_W	26
+
+static void	print_logo_line(const char *line)
+{
+	size_t	len = strlen(line);
+
+	printk("%s", line);
+	while (len++ < BANNER_LOGO_W)
+		printk(" ");
+}
+
+void	print_banner(void)
+{
+	const char	*logo[] = {
+		"  ..............",
+		" `/..@@@@@@@@.\\.",
+		"``@`/......\\\\@.\\",
+		"\\\\\\      \\`@```",
+		" ``@``     .//@//",
+		" `\\.`\\....//.@///",
+		"  \\`@\\@@@@@\\@```",
+		" ``@`/....\\\\@.\\.",
+		" `\\@`\\     .\\\\@\\",
+		"  \\`@\\`      \\\\.@``",
+		"  `\\./`       \\...",
+		"    ...",
+	};
+	char		cpu[64];
+	uint32_t	total_kb = (_pm_blocks * 4096) / 1024;
+	uint32_t	used_kb = (_pm_used * 4096) / 1024;
+
+	print_cpu_brand(cpu, sizeof(cpu));
+
+	print_logo_line(logo[0]);
+	printk("\n");
+
+	print_logo_line(logo[1]);
+	print_info_label("OS");
+	printk("rtjn-kernel ");
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+	printk("%s\n", RTJN_VERSION);
+	info_reset_color();
+
+	print_logo_line(logo[2]);
+	print_info_label("Host");
+	printk("%s\n", RTJN_AUTHOR);
+
+	print_logo_line(logo[3]);
+	print_info_label("Kernel");
+	printk("rtjn-kernel-i686-");
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+	printk("%s\n", RTJN_VERSION);
+	info_reset_color();
+
+
+	print_logo_line(logo[4]);
+	print_info_label("CPU");
+	printk("%s\n", cpu);
+
+
+	print_logo_line(logo[5]);
+	print_info_label("Memory");
+	term_setcolor(vga_entry_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK));
+	printk("%u", used_kb / 1024);
+	info_reset_color();
+	printk(" MiB / ");
+	printk("%u", total_kb / 1024);
+	info_reset_color();
+	printk(" MiB\n");
+
+	print_logo_line(logo[6]);
+	print_info_label("Uptime");
+	printk("%d minutes %d seconds\n", (timer_ticks / 18) / 60, (timer_ticks / 18) % 60);
+
+	for (size_t i = 8; i < 12; i++)
+	{
+		print_logo_line(logo[i]);
+		printk("\n");
+	}
+	printk("\n");
 }
 
 static void	dispatch(char *buf)

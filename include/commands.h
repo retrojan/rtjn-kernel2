@@ -15,6 +15,7 @@ typedef struct s_command
 	int			(*func)(int argc, char **argv);
 }			t_command;
 
+void	print_banner(void);
 int		cmd_help(int argc, char **argv);
 int		cmd_clear(int argc, char **argv);
 int		cmd_uname(int argc, char **argv);
@@ -23,6 +24,7 @@ int		cmd_version(int argc, char **argv);
 int		cmd_uptime(int argc, char **argv);
 int		cmd_meminfo(int argc, char **argv);
 int		cmd_history(int argc, char **argv);
+int		cmd_fetch(int argc, char **argv);
 int		cmd_echo(int argc, char **argv);
 int		cmd_color(int argc, char **argv);
 int		cmd_ctest(int argc, char **argv);

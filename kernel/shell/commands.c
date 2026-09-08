@@ -214,26 +214,10 @@ int	cmd_history(int argc, char **argv)
 	return (0);
 }
 
-int	cmd_logo(int argc, char **argv)
+int	cmd_fetch(int argc, char **argv)
 {
-uint8_t	saved = t_color;
-
-    printk("  .............\n");
-    printk(" `/..@@@@@@@@.\\\\.\n");
-    printk("``@`/......\\\\@.\\\\\n");
-    printk("\\\\\\\\\\      \\`@```\n");
-    printk(" ``@``     .//@//	" "	rtjn-kernel ");
-    term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
-    printk("%s", RTJN_VERSION);
-    term_setcolor(saved);
-    printk("\n");
-    printk(" `\\.`\\....//.@///\n");
-    printk("  \\`@\\@@@@@\\@```\n");
-    printk(" ``@`/....\\\\@.\\.\n");
-    printk(" `\\@`\\     .\\\\@\\\\.\n");
-    printk("  \\`@\\`      \\\\.@``\n");
-    printk("  `\\./`       \\...\n");
-    printk("	...\n\n");
+	(void)argc; (void)argv;
+	print_banner();
 	return 0;
 }
 
@@ -1251,7 +1235,7 @@ int	cmd_uhci(int argc, char **argv)
 ** ============================================================ */
 
 t_command	g_commands[] = {
-	{"logo",		"Print the kernel ASCII art banner",		cmd_logo},
+	{"fetch",		"Print the kernel fastfetch-style banner",		cmd_fetch},
 	{"uname",		"Print system name (-a for details)",		cmd_uname},
 	{"whoami",		"Print current user",						cmd_whoami},
 	{"version",		"Print kernel version",						cmd_version},
