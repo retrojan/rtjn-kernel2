@@ -13,11 +13,7 @@
 
 
 ## Known issues
-
-| Issue | QEMU | Real PC |
-|-------|:----:|:-------:|
-| Shutdown / power-off | ✅ | ❌ |
-| Ethernet / networking | ✅ | ❓ |
+- shutdown on real pc
 
 
 
