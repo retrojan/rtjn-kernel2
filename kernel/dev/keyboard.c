@@ -18,6 +18,8 @@ volatile char		read_key = 0;
 volatile uint8_t	do_clear_screen = 0;
 volatile uint8_t	cancel_input = 0;
 volatile int8_t		nav_key = 0;
+/* Set when Alt+Backspace is pressed (delete the word before the cursor). */
+volatile uint8_t	word_del = 0;
 /* Set when a Ctrl+<letter> combo (other than Ctrl+L/C) is pressed.
  * Consumed by the nano editor; readline ignores it. */
 volatile uint8_t	ctrl_char = 0;
@@ -73,16 +75,26 @@ void	keyboard_handler(regs_t *re)
 				ctrl_char = keys[scancode];
 			modifier = 0;
 		}
+		else if (modifier == KEYMOD_ALT && scancode == 14) /* Alt+Backspace -> delete word */
+		{
+			read_key = 0;
+			nav_key = 0;
+			word_del = 1;
+			in_read = 1;
+			modifier = 0;
+		}
 		else if (modifier == KEYMOD_SHFT && scancode <= 58)
 		{
 			read_key = shift_keys[scancode];
 			nav_key = 0;
+			word_del = 0;
 			in_read = 1;
 		}
 		else if (modifier == 0 && scancode <= 58)
 		{
 			read_key = keys[scancode];
 			nav_key = 0;
+			word_del = 0;
 			in_read = 1;
 		}
 		else if (modifier == 0 && scancode == 72) /* Up */
