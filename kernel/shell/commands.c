@@ -220,7 +220,7 @@ int	cmd_logo(int argc, char **argv)
     printk(" `/..@@@@@@@@.\\\\.\n");
     printk("``@`/......\\\\@.\\\\\n");
     printk("\\\\\\\\\\      \\`@```\n");
-    printk(" ``@``     .//@//	" "	rtjn-kernel-%s\n",RTJN_VERSION);
+    printk(" ``@``     .//@//	" "	rtjn-kernel %s\n",RTJN_VERSION);
     printk(" `\\.`\\....//.@///\n");
     printk("  \\`@\\@@@@@\\@```\n");
     printk(" ``@`/....\\\\@.\\.\n");

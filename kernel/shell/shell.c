@@ -6,6 +6,8 @@
 #include "io.h"
 #include "version.h"
 #include "acpi.h"
+#include "term.h"
+#include "vga.h"
 #define TERM_BUFF	255
 
 extern  volatile uint32_t	timer_ticks;
@@ -39,11 +41,17 @@ static void	shutdown(void)
 
 static void	print_banner(void)
 {
+    uint8_t	saved = terminal_color;
+
     printk("  .............\n");
     printk(" `/..@@@@@@@@.\\\\.\n");
     printk("``@`/......\\\\@.\\\\\n");
     printk("\\\\\\\\\\      \\`@```\n");
-    printk(" ``@``     .//@//	" "	rtjn-kernel-%s\n",RTJN_VERSION);
+    printk(" ``@``     .//@//	" "	rtjn-kernel ");
+    terminal_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+    printk("%s", RTJN_VERSION);
+    terminal_setcolor(saved);
+    printk("\n");
     printk(" `\\.`\\....//.@///\n");
     printk("  \\`@\\@@@@@\\@```\n");
     printk(" ``@`/....\\\\@.\\.\n");

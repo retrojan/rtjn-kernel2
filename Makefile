@@ -99,7 +99,7 @@ $(BUILD_DIR)%.o: $(SRC_DIR)/$(KERNEL_DIR)%.c
 -include $(BUILD_DIR)$(KERNEL_FILES:.c=.d)
 
 run: all $(FSIMG)
-	qemu-system-i386 -drive file=$(IMGFILE),format=raw,if=ide,index=0 -drive file=$(FSIMG),format=raw,if=ide,index=2 -boot c -m 128M -no-reboot -display curses -net nic,model=rtl8139 -net user
+	qemu-system-i386 -drive file=$(IMGFILE),format=raw,if=ide,index=0 -drive file=$(FSIMG),format=raw,if=ide,index=2 -boot c -m 128M -no-reboot -net nic,model=rtl8139 -net user #-display curses 
 
 clean:
 	rm -rf $(BUILD_DIR)
