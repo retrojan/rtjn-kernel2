@@ -125,7 +125,7 @@ void	print_banner(void)
 	print_logo_line(logo[1]);
 	print_info_label("OS");
 	printk("rtjn-kernel ");
-	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
 	printk("%s\n", RTJN_VERSION);
 	info_reset_color();
 
@@ -136,7 +136,7 @@ void	print_banner(void)
 	print_logo_line(logo[3]);
 	print_info_label("Kernel");
 	printk("rtjn-kernel-i686-");
-	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
 	printk("%s\n", RTJN_VERSION);
 	info_reset_color();
 
@@ -148,7 +148,7 @@ void	print_banner(void)
 
 	print_logo_line(logo[5]);
 	print_info_label("Memory");
-	term_setcolor(vga_entry_color(VGA_COLOR_GREEN, VGA_COLOR_BLACK));
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
 	printk("%u", used_kb / 1024);
 	info_reset_color();
 	printk(" MiB / ");

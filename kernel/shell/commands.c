@@ -13,7 +13,6 @@
 #include "idt.h"
 #include "readline.h"
 #include "commands.h"
-#include "version.h"
 #include "sched.h"
 #include "usertask.h"
 #include "net.h"
@@ -26,12 +25,7 @@
 #include "usb.h"
 
 
-extern volatile uint32_t	timer_ticks;
-extern volatile uint8_t		in_read;
-extern volatile char		read_key;
 extern volatile uint8_t		cancel_input;
-extern uint32_t				_pm_blocks;
-extern uint32_t				_pm_used;
 extern void					*irq_routines[];
 
 //  GLOBAL SHELL STATE 
@@ -156,49 +150,6 @@ int	cmd_clear(int argc, char **argv)
 	return (0);
 }
 
-int	cmd_uname(int argc, char **argv)
-{
-	if (argc > 1 && strcmp(argv[1], "-a") == 0)
-		printk("%s %s %s %s\n", RTJN_RELEASENAME, RTJN_VERSION);
-	else
-		printk("%s\n", RTJN_RELEASENAME);
-	return (0);
-}
-
-int	cmd_whoami(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("root\n");
-	return (0);
-}
-
-int	cmd_version(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("rtjn-kernel %s \n", RTJN_VERSION);
-	return (0);
-}
-
-int	cmd_uptime(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("Up time is %d minutes %d seconds.\n", (timer_ticks / 18) / 60, (timer_ticks / 18) % 60);
-	return (0);
-}
-
-int	cmd_meminfo(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("Physical memory:\n");
-	printk("  max blocks : %d\n", _pm_blocks);
-	printk("  used blocks: %d\n", _pm_used);
-	printk("  free blocks: %d\n", _pm_blocks - _pm_used);
-	printk("  total      : %d KB\n", (_pm_blocks * 4096) / 1024);
-	printk("  used       : %d KB\n", (_pm_used * 4096) / 1024);
-	printk("  free       : %d KB\n", ((_pm_blocks - _pm_used) * 4096) / 1024);
-	return (0);
-}
-
 int	cmd_history(int argc, char **argv)
 {
 	(void)argc; (void)argv;
@@ -231,57 +182,6 @@ int	cmd_echo(int argc, char **argv)
 		printk("%s", argv[i]);
 	}
 	printk("\n");
-	return (0);
-}
-
-int	cmd_color(int argc, char **argv)
-{
-	static const uint8_t palette[16] = {
-		VGA_COLOR_BLACK, VGA_COLOR_BLUE, VGA_COLOR_GREEN, VGA_COLOR_CYAN,
-		VGA_COLOR_RED, VGA_COLOR_MAGENTA, VGA_COLOR_BROWN, VGA_COLOR_LIGHT_GREY,
-		VGA_COLOR_DARK_GREY, VGA_COLOR_LIGHT_BLUE, VGA_COLOR_LIGHT_GREEN,
-		VGA_COLOR_LIGHT_CYAN, VGA_COLOR_LIGHT_RED, VGA_COLOR_LIGHT_MAGENTA,
-		VGA_COLOR_LIGHT_BROWN, VGA_COLOR_WHITE
-	};
-	static const char *names[16] = {
-		"black", "blue", "green", "cyan", "red", "magenta", "brown", "grey",
-		"darkgrey", "lightblue", "lightgreen", "lightcyan", "lightred",
-		"lightmagenta", "lightbrown", "white"
-	};
-
-	if (argc < 2)
-	{
-		printk("Usage: color <name> [0-15]\n");
-		return (0);
-	}
-	for (int i = 0; i < 16; i++)
-	{
-		if (strcmp(argv[1], names[i]) == 0)
-		{
-			uint8_t bg = VGA_COLOR_BLACK;
-			if (argc > 2)
-				bg = (uint8_t)atoi(argv[2]) & 0xF;
-			term_setcolor(vga_entry_color((enum vga_color)palette[i], (enum vga_color)bg));
-			return (0);
-		}
-	}
-	printk("Unknown color '%s'\n", argv[1]);
-	return (0);
-}
-
-int	cmd_ctest(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	uint8_t	saved = t_color;
-
-	for (int i = 0; i < 16; i++)
-	{
-		term_setcolor(vga_entry_color((enum vga_color)i, VGA_COLOR_BLACK));
-		printk("Color %2d  ABCDEF ", i);
-		printk("\n");
-	}
-	term_setcolor(saved);
-	printk("Color test complete.\n");
 	return (0);
 }
 
@@ -438,32 +338,6 @@ int	cmd_irq(int argc, char **argv)
 	return (0);
 }
 
-int	cmd_hlt(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	asm volatile("hlt");
-	return (0);
-}
-
-int	cmd_tfault(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("Triggering triple fault...\n");
-	uint8_t *zerodiv = (uint8_t*)0x0;
-	*zerodiv = 0;
-	return (0);
-}
-
-int	cmd_stkp(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("Recursing to overflow the stack...\n");
-	volatile uint8_t big[8192];
-	(void)big;
-	cmd_stkp(0, 0);
-	return (0);
-}
-
 /* ============================================================
 **  CMOS real-time clock helpers
 ** ============================================================ */
@@ -483,31 +357,6 @@ static uint8_t	rtc_conv(uint8_t v, int bcd)
 /* ============================================================
 **  System / info commands
 ** ============================================================ */
-int	cmd_info(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("retrojan kernel\n");
-	printk("  author   : retrojan\n");
-	printk("  arch     : i686\n");
-	printk("  boot     : BIOS\n");
-	printk("  console  : VGA text\n");
-	return (0);
-}
-
-int	cmd_arch(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("i686\n");
-	return (0);
-}
-
-int	cmd_pit(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("Timer ticks: %u\n", (unsigned)timer_ticks);
-	return (0);
-}
-
 int	cmd_date(int argc, char **argv)
 {
 	(void)argc; (void)argv;
@@ -1222,29 +1071,14 @@ int	cmd_usb(int argc, char **argv)
 	return (0);
 }
 
-int	cmd_uhci(int argc, char **argv)
-{
-	(void)argc; (void)argv;
-	printk("UHCI: basic host controller support\n");
-	printk("  devices found: %d\n", usb_get_device_count());
-	return (0);
-}
-
 /* ============================================================
 **  COMMAND DESCRIPTOR TABLE
 ** ============================================================ */
 
 t_command	g_commands[] = {
 	{"fetch",		"Print the kernel fastfetch-style banner",		cmd_fetch},
-	{"uname",		"Print system name (-a for details)",		cmd_uname},
-	{"whoami",		"Print current user",						cmd_whoami},
-	{"version",		"Print kernel version",						cmd_version},
-	{"uptime",		"Print system uptime",						cmd_uptime},
-	{"meminfo",		"Print physical memory usage",			cmd_meminfo},
 	{"history",		"Print command history",					cmd_history},
 	{"echo",		"Echo the given arguments",					cmd_echo},
-	{"color",		"Set terminal color",						cmd_color},
-	{"ctest",		"Show all available colors",				cmd_ctest},
 	{"sleep",		"Sleep for N seconds",						cmd_sleep},
 	{"calc",		"Simple arithmetic calculator",			cmd_calc},
 	{"hexdump",		"Dump memory at an address",				cmd_hexdump},
@@ -1252,12 +1086,6 @@ t_command	g_commands[] = {
 	{"gdt",			"Dump the Global Descriptor Table",		cmd_gdt},
 	{"idt",			"Dump the Interrupt Descriptor Table",	cmd_idt},
 	{"irq",			"List registered IRQ handlers",			cmd_irq},
-	{"hlt",			"Pause the CPU (halt)",						cmd_hlt},
-	{"tfault",		"Trigger a triple fault",					cmd_tfault},
-	{"stkp",		"Overflow the stack on purpose",			cmd_stkp},
-	{"info",		"Show kernel information",					cmd_info},
-	{"arch",		"Print the machine architecture",			cmd_arch},
-	{"pit",			"Show PIT timer ticks",						cmd_pit},
 	{"date",		"Read the CMOS real-time clock",			cmd_date},
 	{"cpu",			"Print the CPU brand string",				cmd_cpu},
 	{"ls",			"List a directory",							cmd_ls},
@@ -1275,7 +1103,6 @@ t_command	g_commands[] = {
 	{"nano",		"Simple text editor",						cmd_nano},
 	{"vi",			"Minimal vi editor",						cmd_vi},
 	{"usb",			"List USB devices",							cmd_usb},
-	{"uhci",		"Show UHCI host controller info",			cmd_uhci},
 	{"ps",			"List running kernel tasks",				cmd_ps},
 	{"exec",		"Spawn a ring3 user task",					cmd_exec},
 	{"ifconfig",	"Show the network interface config",		cmd_ifconfig},
