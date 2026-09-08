@@ -48,7 +48,13 @@ int		readline(char *buf, size_t size)
 {
 	size_t	i = 0;
 	int		hooked = 0;
-	cancel_input = 0;	/* start a fresh prompt: don't inherit stale cancels */
+	/* start a fresh prompt: don't inherit stale state from the previous
+	 * prompt/command (e.g. left-over arrows or a held Enter running the
+	 * last history entry by itself). */
+	cancel_input = 0;
+	read_key = 0;
+	nav_key = 0;
+	in_read = 0;
 	while (i < size)
 	{
 		if (cancel_input == 1)
@@ -90,12 +96,16 @@ int		readline(char *buf, size_t size)
 				hooked = 1;
 			}
 			nav_key = 0;
+			continue ;
 		}
 		if (in_read == 1 && read_key != 0)
 		{
 			in_read = 0;
 			if (read_key == '\n')
+			{
+				read_key = 0;
 				return (i);
+			}
 			if (read_key == '\b')
 			{
 				backspace(&i);
@@ -112,6 +122,8 @@ int		readline(char *buf, size_t size)
 			}
 			hooked = 0;
 			buf[i] = 0;
+			read_key = 0;
+			continue ;
 		}
 	}
 	return (i);

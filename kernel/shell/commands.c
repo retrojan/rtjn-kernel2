@@ -134,7 +134,7 @@ int	cmd_help(int argc, char **argv)
 	if (cols < 1)
 		cols = 1;
 
-	printk("retrojan shell commands (%u) - 'help <cmd>' for details:\n",
+	printk("shell commands(%u) - 'help <cmd>' for details:\n",
 		(unsigned)g_command_count);
 	for (i = 0; i < g_command_count; i++)
 	{

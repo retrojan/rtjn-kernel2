@@ -76,30 +76,36 @@ void	keyboard_handler(regs_t *re)
 		else if (modifier == KEYMOD_SHFT && scancode <= 58)
 		{
 			read_key = shift_keys[scancode];
+			nav_key = 0;
 			in_read = 1;
 		}
 		else if (modifier == 0 && scancode <= 58)
 		{
 			read_key = keys[scancode];
+			nav_key = 0;
 			in_read = 1;
 		}
 		else if (modifier == 0 && scancode == 72) /* Up */
 		{
+			read_key = 0;
 			nav_key = 1;
 			in_read = 1;
 		}
 		else if (modifier == 0 && scancode == 80) /* Down */
 		{
+			read_key = 0;
 			nav_key = 2;
 			in_read = 1;
 		}
 		else if (modifier == 0 && scancode == 75) /* Left */
 		{
+			read_key = 0;
 			nav_key = 3;
 			in_read = 1;
 		}
 		else if (modifier == 0 && scancode == 77) /* Right */
 		{
+			read_key = 0;
 			nav_key = 4;
 			in_read = 1;
 		}

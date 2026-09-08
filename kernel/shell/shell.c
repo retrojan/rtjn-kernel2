@@ -88,10 +88,13 @@ static void	print_cpu_brand(char *out, size_t out_size)
 static void	print_logo_line(const char *line)
 {
 	size_t	len = strlen(line);
+	uint8_t	saved = t_color;
 
+	term_setcolor(vga_entry_color(VGA_COLOR_WHITE, VGA_COLOR_BLACK));
 	printk("%s", line);
 	while (len++ < BANNER_LOGO_W)
 		printk(" ");
+	term_setcolor(saved);
 }
 
 void	print_banner(void)
