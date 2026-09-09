@@ -128,8 +128,11 @@ int	cmd_help(int argc, char **argv)
 	if (cols < 1)
 		cols = 1;
 
-	printk("shell commands(%u) - 'help <cmd>' for details:\n",
-		(unsigned)g_command_count);
+	printk("shell commands(%u) - '", (unsigned)g_command_count);
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
+	printk("help <cmd>");
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
+	printk("' for details:\n\n");
 	for (i = 0; i < g_command_count; i++)
 	{
 		printk("%s", g_commands[i].name);
@@ -139,6 +142,7 @@ int	cmd_help(int argc, char **argv)
 		if ((i + 1) % cols == 0)
 			printk("\n");
 	}
+
 	printk("\n");
 	return (0);
 }

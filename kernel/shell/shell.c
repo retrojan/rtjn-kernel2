@@ -40,11 +40,6 @@ static void	shutdown(void)
 	acpi_shutdown();
 }
 
-static void	info_reset_color(void)
-{
-	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
-}
-
 static void	print_info_label(const char *label)
 {
 	uint8_t	saved = t_color;
@@ -125,9 +120,9 @@ void	print_banner(void)
 	print_logo_line(logo[1]);
 	print_info_label("OS");
 	printk("rtjn-kernel ");
-	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK));
 	printk("%s\n", RTJN_VERSION);
-	info_reset_color();
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
 
 	print_logo_line(logo[2]);
 	print_info_label("Host");
@@ -136,9 +131,7 @@ void	print_banner(void)
 	print_logo_line(logo[3]);
 	print_info_label("Kernel");
 	printk("rtjn-kernel-i686-");
-	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK));
 	printk("%s\n", RTJN_VERSION);
-	info_reset_color();
 
 
 	print_logo_line(logo[4]);
@@ -148,12 +141,10 @@ void	print_banner(void)
 
 	print_logo_line(logo[5]);
 	print_info_label("Memory");
-	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_CYAN, VGA_COLOR_BLACK));
 	printk("%u", used_kb / 1024);
-	info_reset_color();
 	printk(" MiB / ");
 	printk("%u", total_kb / 1024);
-	info_reset_color();
+	term_setcolor(vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
 	printk(" MiB\n");
 
 	print_logo_line(logo[6]);
@@ -229,7 +220,7 @@ static void	dispatch(char *buf)
 			}
 		}
 		if (!found)
-			printk("retrojan: Command not found.\n");
+			printk("rtjn-kernel2: Command not found.\n");
 	}
 }
 
@@ -241,7 +232,7 @@ void	shell(void)
 	while (1)
 	{
 		bzero(buf, TERM_BUFF + 1);
-		printk("# %s> ", g_cwd);
+		printk("%s> ", g_cwd);
 		readline(buf, TERM_BUFF);
 		printk("\n");
 		if (strlen(buf) == 0)

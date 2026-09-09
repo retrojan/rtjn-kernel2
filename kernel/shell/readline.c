@@ -168,7 +168,7 @@ int		readline(char *buf, size_t size)
 		{
 			do_clear_screen = 0;
 			term_clear();
-			printk("# %s> ", g_cwd);
+			printk("%s> ", g_cwd);
 			i = 0;
 			pos = 0;
 			buf[0] = 0;
