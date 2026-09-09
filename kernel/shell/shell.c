@@ -220,7 +220,7 @@ static void	dispatch(char *buf)
 			}
 		}
 		if (!found)
-			printk("rtjn-kernel2: Command not found.\n");
+			printk("rtjn-kernel: Command not found.\n");
 	}
 }
 
