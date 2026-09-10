@@ -8,12 +8,12 @@
 
 
 > [!WARNING]
-> **This kernel is BIOS/Legacy ONLY and WILL NOT boot on UEFI systems without CSM**
+> **BIOS/Legacy only (QEMU). Won't boot on UEFI without CSM.**
 
-## Known issues (all working in QEMU)
-- shutdown on real pc
-- file system on real pc
-- ethernet on real pc
+## Real pc issues
+- shutdown
+- file system
+- ethernet
 
 ## Pkgs
 ### Arch Linux
