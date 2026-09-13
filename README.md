@@ -1,7 +1,7 @@
 <div align=center>
 <h1>rtjn-kernel2</h1>
 <p ><b>BIOS/Legacy kernel</b></p>
-<img width="875" height="610" alt="image" src="https://github.com/user-attachments/assets/c62845da-4c5b-49c1-9ebb-3790929e1ae4" />
+<img width="700" height="412" alt="image" src="https://github.com/user-attachments/assets/ab8f405d-2397-4b2a-8400-5e3d0a3ed46f" />
 
 
 </div>
