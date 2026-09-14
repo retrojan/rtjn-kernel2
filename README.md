@@ -1,6 +1,6 @@
 <div align=center>
 <h1>rtjn-kernel2</h1>
-<p ><b>BIOS/Legacy kernel</b></p>
+<p ><b>x86_64 kernel</b></p>
 <img width="700" height="412" alt="image" src="https://github.com/user-attachments/assets/ab8f405d-2397-4b2a-8400-5e3d0a3ed46f" />
 
 
