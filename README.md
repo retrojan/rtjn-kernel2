@@ -1,3 +1,9 @@
+> [!CAUTION]
+> **This project is archived and no longer maintained**   
+> **REASON: non-modularity**
+
+
+
 <div align=center>
 <h1>rtjn-kernel2</h1>
 <p ><b>x86 kernel</b></p>
@@ -5,6 +11,13 @@
 
 
 </div>
+
+
+
+
+
+
+
 
 
 > [!WARNING]
