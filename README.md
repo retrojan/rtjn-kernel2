@@ -27,6 +27,7 @@
 - shutdown
 - file system
 - ethernet
+- other bugs with CL
 
 ## Pkgs
 ### Arch Linux
